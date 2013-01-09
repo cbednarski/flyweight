@@ -19,7 +19,16 @@ Flyweight is built for write-once behavior, so it sets long expires headers and 
 
 ### Configuration
 
-Configuration is managed through `config.py`
+Configuration is managed through some very simple settings in `config.py`.
+
+```python
+bucket = "flyweight"
+
+repos = [
+    {"url":"git@github.com:cbednarski/flyweight-test1.git"},
+    {"url":"git@github.com:cbednarski/skyrim-alchemy.git"}
+]
+```
 
 ### Usage
 
