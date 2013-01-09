@@ -4,12 +4,12 @@ Flyweight is a lightweight tool for building CDNs using Amazon S3 and CloudFront
 
 ### How it works
 
-Flyweight starts by looking for tags in your git repos that match [SemVer](http://semver.org/) version numbers. Flyweight enumerates these tags and pulls pulls assets like images, css, and javascript out of git and pushes them into namespaced, versioned paths in S3, like this:
+Flyweight starts by looking for tags in your git repos that match [SemVer](http://semver.org/) version numbers. Flyweight enumerates these tags and pulls assets like images, css, and javascript out of git and pushes them into namespaced, versioned paths in S3, like this:
 
 	/somejslib/1.2.0/my.js
 	/somejslib/1.2.1/my.js
 
-Flyweight is built for write-once behavior, so it sets long expires headers and will not modify existing versions.
+Flyweight is built for write-once behavior, so it sets long expires headers and will not modify existing versions on your CDN.
 
 ### Dependencies
 
