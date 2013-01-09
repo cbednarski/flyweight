@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import subprocess
+import config
 
 class Git:
     def clone(self, source, target):
@@ -24,10 +25,18 @@ class Flyweight:
     ]
 
     def resetWorkspace(self):
-        workspace = 
-        if()
+        workspace = os.path.join(os.getcwd(), 'workspace')
+        source = os.path.join(workspace, 'source')
+        output = os.path.join(workspace, 'output')
+
+        if not os.path.isdir(source):
+            os.makedirs(source)
+
+        if not os.path.isdir(output):
+            os.makedirs(output)
 
     def updateRepos(self):
+        self.resetWorkspace()
         pass
 
     def updateCDN(self):
