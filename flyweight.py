@@ -1,21 +1,21 @@
 #!/usr/bin/env python
+import os
 import subprocess
-import shlex
 
-class git:
-    def clone(source, target):
+class Git:
+    def clone(self, source, target):
         pass
 
-    def fetch(path):
+    def fetch(self, path):
         pass
 
-    def checkout(revision):
+    def checkout(self, revision):
         pass
 
-    def getTags(path):
+    def getTags(self, path):
         pass
 
-class flyweight:
+class Flyweight:
     includes = [
         'css', 'js', 'json',
         'png', 'gif', 'jpg', 'jpeg', 'svg',
@@ -23,14 +23,19 @@ class flyweight:
         'swf', 'flv'
     ]
 
-    def updateRepos():
+    def resetWorkspace(self):
+        workspace = 
+        if()
+
+    def updateRepos(self):
         pass
 
-    def updateCDN():
+    def updateCDN(self):
         pass
 
 def main():
-    
+    flyweight = Flyweight()
+    flyweight.updateRepos()
 
 if __name__ == '__main__':
     main()
