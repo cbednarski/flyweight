@@ -24,8 +24,9 @@ class Git:
         cwd = os.getcwd()
         os.chdir(path)
         command = "git tag"
-        subprocess.call(command.split(" "))
+        tags = subprocess.check_output(command.split(" ")).strip().split("\n")
         os.chdir(cwd)
+        return tags
 
 class Flyweight:
     includes = [
