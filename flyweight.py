@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import subprocess
 import shlex
 
@@ -15,6 +16,13 @@ class git:
         pass
 
 class flyweight:
+    includes = [
+        'css', 'js', 'json',
+        'png', 'gif', 'jpg', 'jpeg', 'svg',
+        'ttf', 'eot', 'woff', 'otf',
+        'swf', 'flv'
+    ]
+
     def updateRepos():
         pass
 
@@ -22,7 +30,7 @@ class flyweight:
         pass
 
 def main():
-    pass
+    
 
 if __name__ == '__main__':
     main()
