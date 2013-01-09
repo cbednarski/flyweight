@@ -1,14 +1,17 @@
 #!/usr/bin/env python
-import os
-import subprocess
 import config
+import os
+import re
+import subprocess
 
 class Git:
     def clone(self, source, target):
-        pass
+        command = "git clone %s %s" % (source, target)
+        subprocess.call(command.split(" "))
 
     def fetch(self, path):
-        pass
+        command = "git fetch --tags"
+        subprocess.call(command.split(" "))
 
     def checkout(self, revision):
         pass
@@ -24,20 +27,37 @@ class Flyweight:
         'swf', 'flv'
     ]
 
+    source = None
+    output = None
+    git = None
+
+    def __init__(self):
+        self.git = Git()
+        self.resetWorkspace()
+
     def resetWorkspace(self):
         workspace = os.path.join(os.getcwd(), 'workspace')
-        source = os.path.join(workspace, 'source')
-        output = os.path.join(workspace, 'output')
+        self.source = os.path.join(workspace, 'source')
+        self.output = os.path.join(workspace, 'output')
 
-        if not os.path.isdir(source):
-            os.makedirs(source)
+        if not os.path.isdir(self.source):
+            os.makedirs(self.source)
 
-        if not os.path.isdir(output):
-            os.makedirs(output)
+        if not os.path.isdir(self.output):
+            os.makedirs(self.output)
 
     def updateRepos(self):
-        self.resetWorkspace()
-        pass
+        for repo in config.repos:
+            repo['name'] = re.search('/([^/]+)\.git', repo['url']).group(1)
+            repo['source'] = os.path.join(self.source, repo['name'])
+
+            # Update if it exists
+            if os.path.isdir(repo['source']):
+                self.git.fetch(repo['source'])
+            # Otherwise do a fresh clone
+            else:
+                self.git.clone(repo['url'], repo['source'])
+                
 
     def updateCDN(self):
         pass
@@ -45,6 +65,7 @@ class Flyweight:
 def main():
     flyweight = Flyweight()
     flyweight.updateRepos()
+    flyweight.updateCDN()
 
 if __name__ == '__main__':
     main()
