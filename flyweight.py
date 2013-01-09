@@ -13,11 +13,19 @@ class Git:
         command = "git fetch --tags"
         subprocess.call(command.split(" "))
 
-    def checkout(self, revision):
-        pass
+    def checkout(self, path, revision):
+        cwd = os.getcwd()
+        os.chdir(path)
+        command = "git checkout --tags"
+        subprocess.call(command.split(" "))
+        os.chdir(cwd)
 
     def getTags(self, path):
-        pass
+        cwd = os.getcwd()
+        os.chdir(path)
+        command = "git tag"
+        subprocess.call(command.split(" "))
+        os.chdir(cwd)
 
 class Flyweight:
     includes = [
@@ -33,9 +41,7 @@ class Flyweight:
 
     def __init__(self):
         self.git = Git()
-        self.resetWorkspace()
 
-    def resetWorkspace(self):
         workspace = os.path.join(os.getcwd(), 'workspace')
         self.source = os.path.join(workspace, 'source')
         self.output = os.path.join(workspace, 'output')
@@ -46,18 +52,31 @@ class Flyweight:
         if not os.path.isdir(self.output):
             os.makedirs(self.output)
 
-    def updateRepos(self):
         for repo in config.repos:
             repo['name'] = re.search('/([^/]+)\.git', repo['url']).group(1)
             repo['source'] = os.path.join(self.source, repo['name'])
 
+    def updateRepos(self):
+        """
+        The update method clones all of the repos in config.repos that we don't
+        have and updates the ones we do.
+        """
+        for repo in config.repos:
             # Update if it exists
             if os.path.isdir(repo['source']):
                 self.git.fetch(repo['source'])
             # Otherwise do a fresh clone
             else:
                 self.git.clone(repo['url'], repo['source'])
-                
+    
+    def buildCDN(self):
+        """
+        The build CDN method enumerates each tag in the specified repos, creates
+        new output folders, and copies all of the desired files from source to
+        output
+        """
+        for repo in config.repos:
+            print self.git.getTags(repo['source'])
 
     def updateCDN(self):
         pass
@@ -65,6 +84,7 @@ class Flyweight:
 def main():
     flyweight = Flyweight()
     flyweight.updateRepos()
+    flyweight.buildCDN()
     flyweight.updateCDN()
 
 if __name__ == '__main__':
