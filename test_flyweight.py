@@ -11,8 +11,6 @@ class TestGit(unittest.TestCase):
         1.1.0
         pie1.1.0
         1.1.0sdfds
-        picture
-        master
         waka
         """
         expected = ["1.0.23","1.0.24","1.1.0"]
