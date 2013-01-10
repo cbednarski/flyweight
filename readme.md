@@ -27,6 +27,7 @@ Configuration is managed through some very simple settings in `config.py`.
 
 ```python
 bucket = "flyweight"
+yui = "yuicompressor-2.4.7.jar"
 
 repos = [
     {"url":"git@github.com:cbednarski/flyweight-test1.git"},
@@ -39,3 +40,9 @@ repos = [
 	$ python flyweight.py
 
 We recommend using something like Jenkins to run Flyweight on a regular cadence or trigger off of commits into your repositories.
+
+### YUI
+
+You can optionally use YUI to minify your javascript and css files. Simply add the path for your `yuicompressor.x.y.z.jar` to `config.py`. Input and output files have the same names, so this feature should be completely transparent to your users.
+
+The YUI compression happens during the source-to-output copy stage, so it will not minify existing versions. Use `--force` or delete the appropriate folder(s) to minify an already-deployed version.
