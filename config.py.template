@@ -1,5 +1,5 @@
 bucket = "YOUR_BUCKET_NAME"
-use_yui = True
+yui = "yuicompressor-2.4.7.jar"
 expires = 2592000  # 30 days
 
 repos = [
