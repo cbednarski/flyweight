@@ -42,7 +42,6 @@ class Git:
 
 class Flyweight:
     includes = [
-        'md',
         'css', 'js', 'json',
         'png', 'gif', 'jpg', 'jpeg', 'svg',
         'ttf', 'eot', 'woff', 'otf',
