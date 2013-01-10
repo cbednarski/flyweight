@@ -1,5 +1,12 @@
 bucket = "YOUR_BUCKET_NAME"
+use_yui = True
+expires = 2592000  # 30 days
 
 repos = [
-    {"url":"git@github.com:USERNAME/REPOSITORY.git"}
+    {
+        "url":"git@github.com:USERNAME/REPOSITORY.git",
+        "name":"my-repo",
+        "before_build":""
+        "resource_root":""
+    }
 ]
