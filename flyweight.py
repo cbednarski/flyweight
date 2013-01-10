@@ -119,9 +119,11 @@ class Flyweight:
         os.makedirs(dst)
 
         for name in names:
+            # Skip hidden files
             if os.path.basename(name)[0] == ".":
                 continue
             
+            extension = self.getFileExtension(name)
             srcname = os.path.join(src, name)
             dstname = os.path.join(dst, name)
 
