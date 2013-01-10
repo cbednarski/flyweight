@@ -7,27 +7,29 @@ import subprocess
 
 class Git:
     def clone(self, source, target):
-        command = "git clone %s %s" % (source, target)
-        subprocess.call(command.split(" "))
+        self.call("git clone %s %s" % (source, target))
 
     def fetch(self, path):
-        command = "git fetch --tags"
-        subprocess.call(command.split(" "))
+        self.call("git fetch --tags")
 
     def checkout(self, path, revision):
         cwd = os.getcwd()
         os.chdir(path)
-        command = "git checkout %s" % revision
-        subprocess.call(command.split(" "))
+        self.call("git checkout %s" % revision)
         os.chdir(cwd)
 
     def getTags(self, path):
         cwd = os.getcwd()
         os.chdir(path)
-        command = "git tag"
-        tags = subprocess.check_output(command.split(" ")).strip().split("\n")
+        tags = self.parseTags(self.call("git tag")))
         os.chdir(cwd)
         return tags
+
+    def call(self, command):
+        return subprocess.check_output(command.split(" ")
+
+    def parseTags(self, output):
+        output.strip().split("\n")
 
 class Flyweight:
     includes = [
@@ -110,7 +112,7 @@ class Flyweight:
         for name in names:
             if os.path.basename(name)[0] == ".":
                 continue
-            extension = os.path.splitext(name)[1].split(".")[1]
+            
             srcname = os.path.join(src, name)
             dstname = os.path.join(dst, name)
 
@@ -118,6 +120,12 @@ class Flyweight:
                 self.recursiveCopy(srcname, dstname)
             elif extension in self.includes:
                 shutil.copyfile(srcname, dstname)
+
+    def getFileExtension(self, path):
+        filename = os.path.splitext(path)[1]
+        if filename:
+            return filename.split(".")[1]
+        return None
 
 def main():
     flyweight = Flyweight()
