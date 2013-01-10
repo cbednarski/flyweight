@@ -13,9 +13,13 @@ Flyweight is built for write-once behavior, so it sets long expires headers and 
 
 ### Dependencies
 
+All optional dependencies are recommended.
+
 - python 2.7
 - git
-- [`s3cmd`](http://s3tools.org/s3cmd), which can be installed via pip, brew, apt-get, yum or manually
+- [`s3cmd`](http://s3tools.org/s3cmd), available via pip, brew, apt-get, yum or manual install
+- (optional) [python-magic](http://pypi.python.org/pypi/python-magic/), avilable via pip
+- (optional) [YUI Compressor](https://github.com/yui/yuicompressor/downloads), used to minify css and js before upload.
 
 ### Configuration
 
