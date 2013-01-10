@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 
+
 class Git:
     def clone(self, source, target):
         self.call("git clone %s %s" % (source, target))
@@ -43,7 +44,7 @@ class Git:
 class Flyweight:
     includes = [
         'css', 'js', 'json',
-        'png', 'gif', 'jpg', 'jpeg', 'svg',
+        'png', 'gif', 'jpg', 'jpeg', 'svg', 'ico'
         'ttf', 'eot', 'woff', 'otf',
         'swf', 'flv'
     ]
@@ -66,8 +67,10 @@ class Flyweight:
             os.makedirs(self.output)
 
         for repo in config.repos:
-            repo['name'] = self.git.getNameFromUrl(repo['url'])
+            if not 'name' in repo:
+                repo['name'] = self.git.getNameFromUrl(repo['url'])
             repo['source'] = os.path.join(self.source, repo['name'])
+            repo['name'] = repo['name'].lower()
 
     def updateRepos(self):
         """
@@ -104,7 +107,18 @@ class Flyweight:
                         self.recursiveCopy(repo['source'], output_dir)
 
     def updateCDN(self):
-        pass
+        """
+        The update CDN method calls s3cmd to upload files to S3
+        """
+        # Note: The source path should have a trailing slash or the right-most
+        # directory name will appear in the CDN path
+        output_dir = os.path.realpath("workspace/output")+'/'
+
+        self.call("s3cmd sync -r --acl-public \
+            --add-header=Cache-Control:public \
+            --add-header=Expires:A%s \
+            %s s3://%s/" % \
+            (config.expires, output_dir, config.bucket))
 
     def listExistingTags(self, repo):
         repo_path = os.path.join(self.output, repo['name'])
@@ -136,6 +150,10 @@ class Flyweight:
         if filename:
             return filename.split(".")[1]
         return None
+
+    def call(self, command):
+        return subprocess.check_output(command.split(" "))
+
 
 def main():
     flyweight = Flyweight()
