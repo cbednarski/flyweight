@@ -1,6 +1,6 @@
 # Flyweight
 
-Flyweight is a lightweight tool for building CDNs using Amazon S3 and CloudFront.
+Flyweight is a lightweight commandline tool for building CDNs using Amazon S3 and CloudFront.
 
 ### How it works
 
