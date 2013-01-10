@@ -2,7 +2,22 @@ import unittest
 import flyweight
 
 class TestGit(unittest.TestCase):
-    pass
+    def test_parseTags(self):
+        git = flyweight.Git()
+
+        output = """
+        1.0.23
+        1.0.24
+        1.1.0
+        pie1.1.0
+        1.1.0sdfds
+        picture
+        master
+        waka
+        """
+        expected = ["1.0.23","1.0.24","1.1.0"]
+
+        self.assertEquals(expected, git.parseTags(output))
 
 
 class TestFlyweight(unittest.TestCase):

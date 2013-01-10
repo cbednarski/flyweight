@@ -21,15 +21,25 @@ class Git:
     def getTags(self, path):
         cwd = os.getcwd()
         os.chdir(path)
-        tags = self.parseTags(self.call("git tag")))
+        tags = self.parseTags(self.call("git tag"))
         os.chdir(cwd)
         return tags
 
+    def getNameFromUrl():
+        # /([^/]+)\.git
+        pass
+
     def call(self, command):
-        return subprocess.check_output(command.split(" ")
+        return subprocess.check_output(command.split(" "))
 
     def parseTags(self, output):
-        output.strip().split("\n")
+        tags = []
+        for tag in output.strip().split("\n"):
+            tag = tag.strip()
+            if re.match('^\d+\.\d+\.\d+$', tag):
+                tags.append(tag)
+        return tags
+
 
 class Flyweight:
     includes = [
