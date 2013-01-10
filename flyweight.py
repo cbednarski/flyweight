@@ -11,7 +11,10 @@ class Git:
         self.call("git clone %s %s" % (source, target))
 
     def fetch(self, path):
+        cwd = os.getcwd()
+        os.chdir(path)
         self.call("git fetch --tags")
+        os.chdir(cwd)
 
     def checkout(self, path, revision):
         cwd = os.getcwd()
