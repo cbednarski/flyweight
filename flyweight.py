@@ -148,7 +148,7 @@ class Flyweight:
             elif extension in self.includes:
                 if extension in ['js','json','css'] and len(config.yui) > 0:
                     print "Compressing %s" % dstname
-                    self.call("java -jar %s %s -o %s" % (srcname, dstname, config.yui))
+                    self.call("java -jar %s %s -o %s" % (config.yui, srcname, dstname))
                 else:
                     shutil.copyfile(srcname, dstname)
 
