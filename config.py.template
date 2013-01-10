@@ -1,0 +1,5 @@
+bucket = "YOUR_BUCKET_NAME"
+
+repos = [
+    {"url":"git@github.com:USERNAME/REPOSITORY.git"}
+]
