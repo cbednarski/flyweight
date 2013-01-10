@@ -25,9 +25,8 @@ class Git:
         os.chdir(cwd)
         return tags
 
-    def getNameFromUrl():
-        # /([^/]+)\.git
-        pass
+    def getNameFromUrl(self, url):
+        return re.search('[/\\\\]([^/\\\\]+)\.git', url).group(1).lower().replace(" ", "-").replace("_", "-")
 
     def call(self, command):
         return subprocess.check_output(command.split(" "))
@@ -68,7 +67,7 @@ class Flyweight:
             os.makedirs(self.output)
 
         for repo in config.repos:
-            repo['name'] = re.search('/([^/]+)\.git', repo['url']).group(1)
+            repo['name'] = self.git.getNameFromUrl(repo['url'])
             repo['source'] = os.path.join(self.source, repo['name'])
 
     def updateRepos(self):

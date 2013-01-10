@@ -19,6 +19,15 @@ class TestGit(unittest.TestCase):
 
         self.assertEquals(expected, git.parseTags(output))
 
+    def test_getNameFromUrl(self):
+        git = flyweight.Git()
+        # Not sure if these are all even valid git URLs but seems like they could be.
+        self.assertEquals("my-repo", git.getNameFromUrl("git@github.com:cbednarski/My Repo.git"))
+        self.assertEquals("my-repo", git.getNameFromUrl("git://github.com/cbednarski/my_repo.git"))
+        self.assertEquals("my-repo", git.getNameFromUrl("https://github.com/cbednarski/My-Repo.git"))
+        self.assertEquals("my-repo", git.getNameFromUrl("/home/user/code/my-repo.git"))
+        self.assertEquals("my-repo", git.getNameFromUrl("C:\code\My Repo.git"))
+
 
 class TestFlyweight(unittest.TestCase):
     def test_getFileExtension(self):
