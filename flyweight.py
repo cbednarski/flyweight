@@ -40,14 +40,6 @@ class Git:
         return tags
 
 
-class Bucket:
-    name = None
-    expires = 2592000
-
-    def __init__(self):
-        pass
-
-
 class Repository:
     url = None
     name = None

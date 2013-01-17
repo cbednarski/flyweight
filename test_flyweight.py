@@ -29,7 +29,7 @@ class TestGit(unittest.TestCase):
 
 class TestRepository(unittest.TestCase):
     def test_buildFromDict():
-        
+        pass
 
 
 class TestFlyweight(unittest.TestCase):
