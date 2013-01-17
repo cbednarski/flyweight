@@ -9,7 +9,7 @@ Flyweight starts by looking for tags in your git repos that match [SemVer](http:
 	/somejslib/1.2.0/my.js
 	/somejslib/1.2.1/my.js
 
-Flyweight is built for write-once behavior, so it sets long expires headers and will not modify existing versions on your CDN.
+Flyweight is built for write-once behavior, so by default it sets long expires headers and will not modify existing versions on your CDN.
 
 ### Dependencies
 
