@@ -27,6 +27,11 @@ class TestGit(unittest.TestCase):
         self.assertEquals("my-repo", git.getNameFromUrl("C:\code\My Repo.git"))
 
 
+class TestRepository(unittest.TestCase):
+    def test_buildFromDict():
+        
+
+
 class TestFlyweight(unittest.TestCase):
     def test_getFileExtension(self):
         fw = flyweight.Flyweight()

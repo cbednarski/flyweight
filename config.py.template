@@ -4,9 +4,18 @@ expires = 2592000  # 30 days
 
 repos = [
     {
-        "url":"git@github.com:USERNAME/REPOSITORY.git",
+        "url":"git@github.com:USERNAME/REPOSITORY-1.git",
+        # The parameters below this comment are optional
+        "name":"my-repo",   # The library will use this name in the CDN url
+        "before_build":"",  # This command will be executed before assets are collected
+        "resource_root":"", # Assets will be collected from this folder
+        "expires":""        # Set a custom expires for this library
+    },
+    {
+        "url":"git@github.com:USERNAME/REPOSITORY-2.git",
         "name":"my-repo",
-        "before_build":""
-        "resource_root":""
+        "before_build":"",
+        "resource_root":"",
+        "expires":""
     }
 ]

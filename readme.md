@@ -28,18 +28,28 @@ Configuration is managed through some very simple settings in `config.py`.
 ```python
 bucket = "flyweight"
 yui = "yuicompressor-2.4.7.jar"
+expires = 2592000  # 30 days
 
 repos = [
-    {"url":"git@github.com:cbednarski/flyweight-test1.git"},
-    {"url":"git@github.com:cbednarski/skyrim-alchemy.git"}
+    {
+        "url":"git@github.com:USERNAME/REPOSITORY-1.git",
+        "name":"my-repo",   # The library will use this name in the CDN url
+        "before_build":"",  # This command will be executed before assets are collected
+        "resource_root":"", # Assets will be collected from this folder
+        "expires":""        # Set a custom expires for this library
+    }
 ]
 ```
 
 ### Usage
 
-	$ python flyweight.py
+	$ python flyweight.py build   # Generate local assets for CDN
+	$ python flyweight.py push    # Push local assets to the CDN
+	$ python flyweight.py update  # Do both
 
 We recommend using something like Jenkins to run Flyweight on a regular cadence or trigger off of commits into your repositories.
+
+If you want to run a developer / test CDN without using S3, use the `build` action to generate the assets and serve them up using nginx or your favorite web server.
 
 ### YUI
 

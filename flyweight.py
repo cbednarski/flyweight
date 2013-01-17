@@ -1,39 +1,35 @@
 #!/usr/bin/env python
-import config
-import os
-import re
-import shutil
-import subprocess
+import argparse, config, os, re, shutil, subprocess
 
+
+def call(command):
+    return subprocess.check_output(command.split(" "))
 
 class Git:
     def clone(self, source, target):
-        self.call("git clone %s %s" % (source, target))
+        call("git clone %s %s" % (source, target))
 
     def fetch(self, path):
         cwd = os.getcwd()
         os.chdir(path)
-        self.call("git fetch --tags")
+        call("git fetch --tags")
         os.chdir(cwd)
 
     def checkout(self, path, revision):
         cwd = os.getcwd()
         os.chdir(path)
-        self.call("git checkout %s" % revision)
+        call("git checkout %s" % revision)
         os.chdir(cwd)
 
     def getTags(self, path):
         cwd = os.getcwd()
         os.chdir(path)
-        tags = self.parseTags(self.call("git tag"))
+        tags = self.parseTags(call("git tag"))
         os.chdir(cwd)
         return tags
 
     def getNameFromUrl(self, url):
         return re.search('[/\\\\]([^/\\\\]+)\.git', url).group(1).lower().replace(" ", "-").replace("_", "-")
-
-    def call(self, command):
-        return subprocess.check_output(command.split(" "))
 
     def parseTags(self, output):
         tags = []
@@ -43,6 +39,24 @@ class Git:
                 tags.append(tag)
         return tags
 
+
+class Bucket:
+    name = None
+    expires = 2592000
+
+    def __init__(self):
+        pass
+
+
+class Repository:
+    url = None
+    name = None
+    before_build = None
+    resource_root = None
+    expires = None
+
+    def __init__(self, **entries): 
+        self.__dict__.update(entries)
 
 class Flyweight:
     includes = [
@@ -55,9 +69,12 @@ class Flyweight:
     source = None
     output = None
     git = None
+    repos = []
 
     def __init__(self):
         self.git = Git()
+
+        self.parseConfig(config)
 
         self.workspace = os.path.join(os.getcwd(), 'workspace')
         self.source = os.path.join(self.workspace, 'source')
@@ -75,13 +92,13 @@ class Flyweight:
             repo['source'] = os.path.join(self.source, repo['name'])
             repo['name'] = repo['name'].lower()
 
-    def updateRepos(self):
+    def fetchRepos(self):
         """
-        The update method clones all of the repos in config.repos that we don't
-        have and updates the ones we do.
+        The fetch method clones all of the repos in config.repos that we don't
+        have and fetches updates to the ones we have.
         """
-        for repo in config.repos:
-            # Update if it exists
+        for repo in self.repos:
+            # Fetch if it exists
             if os.path.isdir(repo['source']):
                 print "Fetching %s from %s" % (repo['name'], repo['url'])
                 self.git.fetch(repo['source'])
@@ -96,7 +113,7 @@ class Flyweight:
         new output folders, and copies all of the desired files from source to
         output
         """
-        for repo in config.repos:
+        for repo in self.repos:
             for tag in self.git.getTags(repo['source']):
                 if tag in self.listExistingTags(repo):
                     print "Skipping %s version %s because it already exists" %\
@@ -109,7 +126,7 @@ class Flyweight:
                             (repo['name'], tag, output_dir)
                         self.recursiveCopy(repo['source'], output_dir)
 
-    def updateCDN(self):
+    def pushCDN(self):
         """
         The update CDN method calls s3cmd to upload files to S3
         """
@@ -117,7 +134,7 @@ class Flyweight:
         # directory name will appear in the CDN path
         output_dir = os.path.realpath("workspace/output")+'/'
 
-        self.call("s3cmd sync -r --acl-public \
+        call("s3cmd sync -r --acl-public \
             --add-header=Cache-Control:public \
             --add-header=Expires:A%s \
             %s s3://%s/" % \
@@ -148,7 +165,7 @@ class Flyweight:
             elif extension in self.includes:
                 if extension in ['js','json','css'] and len(config.yui) > 0:
                     print "Compressing %s" % dstname
-                    self.call("java -jar %s %s -o %s" % (config.yui, srcname, dstname))
+                    call("java -jar %s %s -o %s" % (config.yui, srcname, dstname))
                 else:
                     shutil.copyfile(srcname, dstname)
 
@@ -158,15 +175,36 @@ class Flyweight:
             return filename.split(".")[1]
         return None
 
-    def call(self, command):
-        return subprocess.check_output(command.split(" "))
+    def parseConfig(self, config):
+        self.bucket = Bucket()
+        self.bucket.name = config.bucket
+        self.bucket.expires = config.expires
 
+        for repo in config.repos:
+            r = Repository(**repo)
+            self.repos.append(r)
 
-def main():
-    flyweight = Flyweight()
-    flyweight.updateRepos()
-    flyweight.buildCDN()
-    flyweight.updateCDN()
+    def cli(self):
+        parser = argparse.ArgumentParser()
+
+        # Main commands
+        parser.add_argument("action", choices=["build", "push", "update"], help="Build the CDN assets locally, push local assets to the CDN, or both (update).")
+
+        # Options
+        parser.add_argument("-f", "--force", action="store_true", help="Rebuild all library versions, " \
+            "including those that have already been built / uploaded")
+        parser.add_argument("-v", "--verbose", action="store_true", help="Spew to console")
+
+        self.args = parser.parse_args()
+        action = self.args.action
+
+        # Execute the cli app
+        if action == "build" or action == "update":
+            flyweight.fetchRepos()
+            flyweight.buildCDN()
+        if action == "push" or action == "update":
+            flyweight.pushCDN()
 
 if __name__ == '__main__':
-    main()
+    flyweight = Flyweight()
+    flyweight.cli()
