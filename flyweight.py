@@ -11,7 +11,6 @@ class Repository:
     before_build = None
     expires = 2592000
     name = None
-    path = None
     resource_root = "/"
     source = None
     url = None
@@ -26,19 +25,19 @@ class Repository:
 
     def fetch(self):
         cwd = os.getcwd()
-        os.chdir(self.path)
+        os.chdir(self.source)
         call("git fetch --tags")
         os.chdir(cwd)
 
     def checkout(self, revision):
         cwd = os.getcwd()
-        os.chdir(self.path)
+        os.chdir(self.source)
         call("git checkout %s" % revision)
         os.chdir(cwd)
 
     def getTags(self):
         cwd = os.getcwd()
-        os.chdir(self.path)
+        os.chdir(self.source)
         tags = self.parseTags(call("git tag"))
         os.chdir(cwd)
         return tags
@@ -94,13 +93,13 @@ class Flyweight:
         """
         for repo in self.repos:
             # Fetch if it exists
-            if os.path.isdir(repo['source']):
-                print "Fetching %s from %s" % (repo['name'], repo['url'])
-                self.git.fetch(repo['source'])
+            if os.path.isdir(repo.source):
+                print "Fetching %s from %s" % (repo.name, repo.url)
+                repo.fetch()
             # Otherwise do a fresh clone
             else:
-                print "Cloning %s from %s" % (repo['name'], repo['url'])
-                self.git.clone(repo['url'], repo['source'])
+                print "Cloning %s from %s" % (repo.name, repo.url)
+                repo.clone(repo.source)
     
     def buildCDN(self):
         """
@@ -109,17 +108,18 @@ class Flyweight:
         output
         """
         for repo in self.repos:
-            for tag in self.git.getTags(repo['source']):
-                if tag in self.listExistingTags(repo):
+            for tag in repo.getTags():
+                if tag in self.listExistingTags(repo) and not self.args.force:
                     print "Skipping %s version %s because it already exists" %\
-                        (repo['name'], tag)
+                        (repo.name, tag)
                 else:
-                    self.git.checkout(repo['source'], tag)
-                    output_dir = os.path.join(self.output, repo['name'], tag)
-                    if not os.path.isdir(output_dir):
+                    print "Building %s version %s" % (repo.name, tag)
+                    repo.checkout(tag)
+                    output_dir = os.path.join(self.output, repo.name, tag)
+                    if not os.path.isdir(output_dir) and not self.args.force:
                         print "Adding %s version %s under %s" %\
-                            (repo['name'], tag, output_dir)
-                        self.recursiveCopy(repo['source'], output_dir)
+                            (repo.name, tag, output_dir)
+                        self.recursiveCopy(repo.source, output_dir)
 
     def pushCDN(self):
         """
@@ -136,7 +136,7 @@ class Flyweight:
             (config.expires, output_dir, config.bucket))
 
     def listExistingTags(self, repo):
-        repo_path = os.path.join(self.output, repo['name'])
+        repo_path = os.path.join(self.output, repo.name)
         if os.path.isdir(repo_path):
             return os.listdir(repo_path)
         else:
