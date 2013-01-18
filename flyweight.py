@@ -1,48 +1,69 @@
 #!/usr/bin/env python
-import config
-import os
-import re
-import shutil
-import subprocess
+import argparse, config, os, re, shutil, subprocess
 
 
-class Git:
-    def clone(self, source, target):
-        self.call("git clone %s %s" % (source, target))
+def call(command):
+    return subprocess.check_output(command.split(" "))
 
-    def fetch(self, path):
+class Repository:
+    """
+    """
+    before_build = None
+    expires = 2592000
+    name = None
+    resource_root = ""
+    source = None
+    url = None
+
+    def __init__(self, **entries): 
+        self.__dict__.update(entries)
+        if self.name is None:
+            self.name = Repository.getNameFromUrl(self.url)
+
+    def clone(self, target):
+        call("git clone -q %s %s" % (self.url, target))
+
+    def fetch(self):
         cwd = os.getcwd()
-        os.chdir(path)
-        self.call("git fetch --tags")
+        os.chdir(self.source)
+        call("git fetch -q --tags")
         os.chdir(cwd)
 
-    def checkout(self, path, revision):
+    def checkout(self, revision):
         cwd = os.getcwd()
-        os.chdir(path)
-        self.call("git checkout %s" % revision)
+        os.chdir(self.source)
+        call("git clean --force")
+        call("git checkout -q %s" % revision)
         os.chdir(cwd)
 
-    def getTags(self, path):
+    def execBeforeBuild(self):
         cwd = os.getcwd()
-        os.chdir(path)
-        tags = self.parseTags(self.call("git tag"))
+        os.chdir(self.source)
+        call(self.before_build)
+        os.chdir(cwd)
+
+    def getTags(self):
+        cwd = os.getcwd()
+        os.chdir(self.source)
+        tags = self.parseTags(call("git tag"))
         os.chdir(cwd)
         return tags
 
-    def getNameFromUrl(self, url):
+    def getResourceRoot(self):
+        return os.path.join(self.source, self.resource_root)
+
+    @staticmethod
+    def getNameFromUrl(url):
         return re.search('[/\\\\]([^/\\\\]+)\.git', url).group(1).lower().replace(" ", "-").replace("_", "-")
 
-    def call(self, command):
-        return subprocess.check_output(command.split(" "))
-
-    def parseTags(self, output):
+    @staticmethod
+    def parseTags(output):
         tags = []
         for tag in output.strip().split("\n"):
             tag = tag.strip()
             if re.match('^\d+\.\d+\.\d+$', tag):
                 tags.append(tag)
         return tags
-
 
 class Flyweight:
     includes = [
@@ -54,10 +75,12 @@ class Flyweight:
 
     source = None
     output = None
-    git = None
+    repos = []
+    bucket_name = None
+    expires = 2592000
 
     def __init__(self):
-        self.git = Git()
+        self.parseConfig(config)
 
         self.workspace = os.path.join(os.getcwd(), 'workspace')
         self.source = os.path.join(self.workspace, 'source')
@@ -69,26 +92,24 @@ class Flyweight:
         if not os.path.isdir(self.output):
             os.makedirs(self.output)
 
-        for repo in config.repos:
-            if not 'name' in repo:
-                repo['name'] = self.git.getNameFromUrl(repo['url'])
-            repo['source'] = os.path.join(self.source, repo['name'])
-            repo['name'] = repo['name'].lower()
+        for repo in self.repos:
+            repo.source = os.path.join(self.source, repo.name)
+            repo.name = repo.name.lower()
 
-    def updateRepos(self):
+    def fetchRepos(self):
         """
-        The update method clones all of the repos in config.repos that we don't
-        have and updates the ones we do.
+        The fetch method clones all of the repos in config.repos that we don't
+        have and fetches updates to the ones we have.
         """
-        for repo in config.repos:
-            # Update if it exists
-            if os.path.isdir(repo['source']):
-                print "Fetching %s from %s" % (repo['name'], repo['url'])
-                self.git.fetch(repo['source'])
+        for repo in self.repos:
+            # Fetch if it exists
+            if os.path.isdir(repo.source):
+                print "Fetching %s from %s" % (repo.name, repo.url)
+                repo.fetch()
             # Otherwise do a fresh clone
             else:
-                print "Cloning %s from %s" % (repo['name'], repo['url'])
-                self.git.clone(repo['url'], repo['source'])
+                print "Cloning %s from %s" % (repo.name, repo.url)
+                repo.clone(repo.source)
     
     def buildCDN(self):
         """
@@ -96,20 +117,25 @@ class Flyweight:
         new output folders, and copies all of the desired files from source to
         output
         """
-        for repo in config.repos:
-            for tag in self.git.getTags(repo['source']):
-                if tag in self.listExistingTags(repo):
+        for repo in self.repos:
+            for tag in repo.getTags():
+                if tag in self.listExistingTags(repo) and not self.args.force:
                     print "Skipping %s version %s because it already exists" %\
-                        (repo['name'], tag)
+                        (repo.name, tag)
                 else:
-                    self.git.checkout(repo['source'], tag)
-                    output_dir = os.path.join(self.output, repo['name'], tag)
-                    if not os.path.isdir(output_dir):
+                    print "Building %s version %s" % (repo.name, tag)
+                    repo.checkout(tag)
+                    if repo.before_build is not None:
+                        print "Executing before_build hook for %s version %s -- command is: %s" %\
+                            (repo.name, tag, repo.before_build)
+                        repo.execBeforeBuild()
+                    output_dir = os.path.join(self.output, repo.name, tag)
+                    if os.path.isdir(repo.getResourceRoot()) and (not os.path.isdir(output_dir) or self.args.force):
                         print "Adding %s version %s under %s" %\
-                            (repo['name'], tag, output_dir)
-                        self.recursiveCopy(repo['source'], output_dir)
+                            (repo.name, tag, output_dir)
+                        self.recursiveCopy(repo.getResourceRoot(), output_dir)
 
-    def updateCDN(self):
+    def pushCDN(self):
         """
         The update CDN method calls s3cmd to upload files to S3
         """
@@ -117,14 +143,19 @@ class Flyweight:
         # directory name will appear in the CDN path
         output_dir = os.path.realpath("workspace/output")+'/'
 
-        self.call("s3cmd sync -r --acl-public \
+        if self.args.force:
+            force = "-f"
+        else:
+            force = ""
+
+        call("s3cmd sync -r %s --acl-public \
             --add-header=Cache-Control:public \
             --add-header=Expires:A%s \
             %s s3://%s/" % \
-            (config.expires, output_dir, config.bucket))
+            (force, config.expires, output_dir, config.bucket))
 
     def listExistingTags(self, repo):
-        repo_path = os.path.join(self.output, repo['name'])
+        repo_path = os.path.join(self.output, repo.name)
         if os.path.isdir(repo_path):
             return os.listdir(repo_path)
         else:
@@ -132,7 +163,9 @@ class Flyweight:
 
     def recursiveCopy(self, src, dst):
         names = os.listdir(src)
-        os.makedirs(dst)
+
+        if not os.path.exists(dst):
+            os.makedirs(dst)
 
         for name in names:
             # Skip hidden files
@@ -148,7 +181,7 @@ class Flyweight:
             elif extension in self.includes:
                 if extension in ['js','json','css'] and len(config.yui) > 0:
                     print "Compressing %s" % dstname
-                    self.call("java -jar %s %s -o %s" % (config.yui, srcname, dstname))
+                    call("java -jar %s %s -o %s" % (config.yui, srcname, dstname))
                 else:
                     shutil.copyfile(srcname, dstname)
 
@@ -158,15 +191,35 @@ class Flyweight:
             return filename.split(".")[1]
         return None
 
-    def call(self, command):
-        return subprocess.check_output(command.split(" "))
+    def parseConfig(self, config):
+        self.bucket_name = config.bucket
+        self.expires = config.expires
 
+        for repo in config.repos:
+            r = Repository(**repo)
+            self.repos.append(r)
 
-def main():
-    flyweight = Flyweight()
-    flyweight.updateRepos()
-    flyweight.buildCDN()
-    flyweight.updateCDN()
+    def cli(self):
+        parser = argparse.ArgumentParser()
+
+        # Main commands
+        parser.add_argument("action", choices=["build", "push", "update"], help="Build the CDN assets locally, push local assets to the CDN, or both (update).")
+
+        # Options
+        parser.add_argument("-f", "--force", action="store_true", help="Rebuild all library versions, " \
+            "including those that have already been built / uploaded")
+        parser.add_argument("-v", "--verbose", action="store_true", help="Spew to console")
+
+        self.args = parser.parse_args()
+        action = self.args.action
+
+        # Execute the cli app
+        if action == "build" or action == "update":
+            flyweight.fetchRepos()
+            flyweight.buildCDN()
+        if action == "push" or action == "update":
+            flyweight.pushCDN()
 
 if __name__ == '__main__':
-    main()
+    flyweight = Flyweight()
+    flyweight.cli()
