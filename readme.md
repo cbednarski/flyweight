@@ -56,3 +56,9 @@ If you want to run a developer / test CDN without using S3, use the `build` acti
 You can optionally use YUI to minify your javascript and css files. Simply add the path for your `yuicompressor.x.y.z.jar` to `config.py`. Input and output files have the same names, so this feature should be completely transparent to your users.
 
 The YUI compression happens during the source-to-output copy stage, so it will not minify existing versions. Use `--force` or delete the appropriate folder(s) to minify an already-deployed version.
+
+### Tests
+
+Run the unit tests with:
+
+	$ python -m unittest discover

@@ -5,31 +5,45 @@ import argparse, config, os, re, shutil, subprocess
 def call(command):
     return subprocess.check_output(command.split(" "))
 
-class Git:
-    def clone(self, source, target):
-        call("git clone %s %s" % (source, target))
+class Repository:
+    """
+    """
+    before_build = None
+    expires = 2592000
+    name = None
+    path = None
+    resource_root = "/"
+    url = None
 
-    def fetch(self, path):
+    def __init__(self, **entries): 
+        self.__dict__.update(entries)
+        if self.name is None:
+            self.name = self.getNameFromUrl(self.url)
+
+    def clone(self, target):
+        call("git clone %s %s" % (self.url, target))
+
+    def fetch(self):
         cwd = os.getcwd()
-        os.chdir(path)
+        os.chdir(self.path)
         call("git fetch --tags")
         os.chdir(cwd)
 
-    def checkout(self, path, revision):
+    def checkout(self, revision):
         cwd = os.getcwd()
-        os.chdir(path)
+        os.chdir(self.path)
         call("git checkout %s" % revision)
         os.chdir(cwd)
 
-    def getTags(self, path):
+    def getTags(self):
         cwd = os.getcwd()
-        os.chdir(path)
+        os.chdir(self.path)
         tags = self.parseTags(call("git tag"))
         os.chdir(cwd)
         return tags
 
     def getNameFromUrl(self, url):
-        return re.search('[/\\\\]([^/\\\\]+)\.git', url).group(1).lower().replace(" ", "-").replace("_", "-")
+        return re.search('[/\\\\]([^/\\\\]+)\.git', self.url).group(1).lower().replace(" ", "-").replace("_", "-")
 
     def parseTags(self, output):
         tags = []
@@ -38,17 +52,6 @@ class Git:
             if re.match('^\d+\.\d+\.\d+$', tag):
                 tags.append(tag)
         return tags
-
-
-class Repository:
-    url = None
-    name = None
-    before_build = None
-    resource_root = None
-    expires = None
-
-    def __init__(self, **entries): 
-        self.__dict__.update(entries)
 
 class Flyweight:
     includes = [
