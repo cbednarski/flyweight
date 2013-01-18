@@ -6,7 +6,7 @@ class TestRepository(unittest.TestCase):
         url = "git@github.com:cbednarski/flyweight.git"
         name = "flyweight-project"
         command = "ls ."
-        root = "/"
+        root = ""
         expires = 1234
 
         rdict = {

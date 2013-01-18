@@ -11,7 +11,7 @@ class Repository:
     before_build = None
     expires = 2592000
     name = None
-    resource_root = "/"
+    resource_root = ""
     source = None
     url = None
 
@@ -48,6 +48,9 @@ class Repository:
         tags = self.parseTags(call("git tag"))
         os.chdir(cwd)
         return tags
+
+    def getResourceRoot(self):
+        return os.path.join(self.source, self.resource_root)
 
     @staticmethod
     def getNameFromUrl(url):
@@ -127,10 +130,10 @@ class Flyweight:
                             (repo.name, tag, repo.before_build)
                         repo.execBeforeBuild()
                     output_dir = os.path.join(self.output, repo.name, tag)
-                    if not os.path.isdir(output_dir) or self.args.force:
+                    if os.path.isdir(repo.getResourceRoot()) and (not os.path.isdir(output_dir) or self.args.force):
                         print "Adding %s version %s under %s" %\
                             (repo.name, tag, output_dir)
-                        self.recursiveCopy(repo.source, output_dir)
+                        self.recursiveCopy(repo.getResourceRoot(), output_dir)
 
     def pushCDN(self):
         """
