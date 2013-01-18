@@ -6,7 +6,7 @@ repos = [
     {
         "url":"git@github.com:USERNAME/REPOSITORY.git",
         "name":"my-repo",
-        "before_build":""
+        "before_build":"",
         "resource_root":""
     }
 ]
