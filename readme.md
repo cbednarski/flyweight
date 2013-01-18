@@ -2,6 +2,9 @@
 
 Flyweight is a lightweight commandline tool for building CDNs using Amazon S3 and CloudFront.
 
+[![Build Status](https://travis-ci.org/cbednarski/flyweight.png)]
+(https://travis-ci.org/cbednarski/flyweight)
+
 ### How it works
 
 Flyweight starts by looking for tags in your git repos that match [SemVer](http://semver.org/) version numbers. Flyweight enumerates these tags and pulls assets like images, css, and javascript out of git and pushes them into namespaced, versioned paths in S3, like this:
