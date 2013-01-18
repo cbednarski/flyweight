@@ -21,19 +21,19 @@ class Repository:
             self.name = Repository.getNameFromUrl(self.url)
 
     def clone(self, target):
-        call("git clone %s %s" % (self.url, target))
+        call("git clone -q %s %s" % (self.url, target))
 
     def fetch(self):
         cwd = os.getcwd()
         os.chdir(self.source)
-        call("git fetch --tags")
+        call("git fetch -q --tags")
         os.chdir(cwd)
 
     def checkout(self, revision):
         cwd = os.getcwd()
         os.chdir(self.source)
         call("git clean --force")
-        call("git checkout %s" % revision)
+        call("git checkout -q %s" % revision)
         os.chdir(cwd)
 
     def execBeforeBuild(self):
