@@ -155,7 +155,9 @@ class Flyweight:
 
     def recursiveCopy(self, src, dst):
         names = os.listdir(src)
-        os.makedirs(dst)
+
+        if not os.path.exists(dst):
+            os.makedirs(dst)
 
         for name in names:
             # Skip hidden files
