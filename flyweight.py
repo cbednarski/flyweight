@@ -39,7 +39,7 @@ class Repository:
     def execBeforeBuild(self):
         cwd = os.getcwd()
         os.chdir(self.source)
-        call("before_build")
+        call(self.before_build)
         os.chdir(cwd)
 
     def getTags(self):
