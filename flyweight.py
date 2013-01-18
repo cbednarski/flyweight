@@ -143,11 +143,16 @@ class Flyweight:
         # directory name will appear in the CDN path
         output_dir = os.path.realpath("workspace/output")+'/'
 
-        call("s3cmd sync -r --acl-public \
+        if self.args.force:
+            force = "-f"
+        else:
+            force = ""
+
+        call("s3cmd sync -r %s --acl-public \
             --add-header=Cache-Control:public \
             --add-header=Expires:A%s \
             %s s3://%s/" % \
-            (config.expires, output_dir, config.bucket))
+            (force, config.expires, output_dir, config.bucket))
 
     def listExistingTags(self, repo):
         repo_path = os.path.join(self.output, repo.name)
