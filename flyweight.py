@@ -32,6 +32,7 @@ class Repository:
     def checkout(self, revision):
         cwd = os.getcwd()
         os.chdir(self.source)
+        call("git clean --force")
         call("git checkout %s" % revision)
         os.chdir(cwd)
 
@@ -116,7 +117,7 @@ class Flyweight:
                     print "Building %s version %s" % (repo.name, tag)
                     repo.checkout(tag)
                     output_dir = os.path.join(self.output, repo.name, tag)
-                    if not os.path.isdir(output_dir) and not self.args.force:
+                    if not os.path.isdir(output_dir) or self.args.force:
                         print "Adding %s version %s under %s" %\
                             (repo.name, tag, output_dir)
                         self.recursiveCopy(repo.source, output_dir)
