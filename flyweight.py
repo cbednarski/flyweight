@@ -36,6 +36,12 @@ class Repository:
         call("git checkout %s" % revision)
         os.chdir(cwd)
 
+    def execBeforeBuild(self):
+        cwd = os.getcwd()
+        os.chdir(self.source)
+        call("before_build")
+        os.chdir(cwd)
+
     def getTags(self):
         cwd = os.getcwd()
         os.chdir(self.source)
@@ -116,6 +122,10 @@ class Flyweight:
                 else:
                     print "Building %s version %s" % (repo.name, tag)
                     repo.checkout(tag)
+                    if repo.before_build is not None:
+                        print "Executing before_build hook for %s version %s -- command is: %s" %\
+                            (repo.name, tag, repo.before_build)
+                        repo.execBeforeBuild()
                     output_dir = os.path.join(self.output, repo.name, tag)
                     if not os.path.isdir(output_dir) or self.args.force:
                         print "Adding %s version %s under %s" %\
