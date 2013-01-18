@@ -13,12 +13,13 @@ class Repository:
     name = None
     path = None
     resource_root = "/"
+    source = None
     url = None
 
     def __init__(self, **entries): 
         self.__dict__.update(entries)
         if self.name is None:
-            self.name = self.getNameFromUrl(self.url)
+            self.name = Repository.getNameFromUrl(self.url)
 
     def clone(self, target):
         call("git clone %s %s" % (self.url, target))
@@ -42,10 +43,12 @@ class Repository:
         os.chdir(cwd)
         return tags
 
-    def getNameFromUrl(self, url):
-        return re.search('[/\\\\]([^/\\\\]+)\.git', self.url).group(1).lower().replace(" ", "-").replace("_", "-")
+    @staticmethod
+    def getNameFromUrl(url):
+        return re.search('[/\\\\]([^/\\\\]+)\.git', url).group(1).lower().replace(" ", "-").replace("_", "-")
 
-    def parseTags(self, output):
+    @staticmethod
+    def parseTags(output):
         tags = []
         for tag in output.strip().split("\n"):
             tag = tag.strip()
@@ -63,12 +66,11 @@ class Flyweight:
 
     source = None
     output = None
-    git = None
     repos = []
+    bucket_name = None
+    expires = 2592000
 
     def __init__(self):
-        self.git = Git()
-
         self.parseConfig(config)
 
         self.workspace = os.path.join(os.getcwd(), 'workspace')
@@ -81,11 +83,9 @@ class Flyweight:
         if not os.path.isdir(self.output):
             os.makedirs(self.output)
 
-        for repo in config.repos:
-            if not 'name' in repo:
-                repo['name'] = self.git.getNameFromUrl(repo['url'])
-            repo['source'] = os.path.join(self.source, repo['name'])
-            repo['name'] = repo['name'].lower()
+        for repo in self.repos:
+            repo.source = os.path.join(self.source, repo.name)
+            repo.name = repo.name.lower()
 
     def fetchRepos(self):
         """
@@ -171,9 +171,8 @@ class Flyweight:
         return None
 
     def parseConfig(self, config):
-        self.bucket = Bucket()
-        self.bucket.name = config.bucket
-        self.bucket.expires = config.expires
+        self.bucket_name = config.bucket
+        self.expires = config.expires
 
         for repo in config.repos:
             r = Repository(**repo)

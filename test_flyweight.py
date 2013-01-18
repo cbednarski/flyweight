@@ -33,9 +33,8 @@ class TestRepository(unittest.TestCase):
 
         self.assertEquals("flyweight", repo.name)
 
-    def test_parseTags(self):
-        repo = flyweight.Repository()
 
+    def test_parseTags(self):
         output = """
         1.0.23
         1.0.24
@@ -46,21 +45,15 @@ class TestRepository(unittest.TestCase):
         """
         expected = ["1.0.23","1.0.24","1.1.0"]
 
-        self.assertEquals(expected, repo.parseTags(output))
+        self.assertEquals(expected, flyweight.Repository.parseTags(output))
 
     def test_getNameFromUrl(self):
-        repo = flyweight.Repository()
         # Not sure if these are all even valid git URLs but seems like they could be.
-        self.assertEquals("my-repo", repo.getNameFromUrl("git@github.com:cbednarski/My Repo.git"))
-        self.assertEquals("my-repo", repo.getNameFromUrl("git://github.com/cbednarski/my_repo.git"))
-        self.assertEquals("my-repo", repo.getNameFromUrl("https://github.com/cbednarski/My-Repo.git"))
-        self.assertEquals("my-repo", repo.getNameFromUrl("/home/user/code/my-repo.git"))
-        self.assertEquals("my-repo", repo.getNameFromUrl("C:\code\My Repo.git"))
-
-
-class TestRepository(unittest.TestCase):
-    def test_buildFromDict():
-        pass
+        self.assertEquals("my-repo", flyweight.Repository.getNameFromUrl("git@github.com:cbednarski/My Repo.git"))
+        self.assertEquals("my-repo", flyweight.Repository.getNameFromUrl("git://github.com/cbednarski/my_repo.git"))
+        self.assertEquals("my-repo", flyweight.Repository.getNameFromUrl("https://github.com/cbednarski/My-Repo.git"))
+        self.assertEquals("my-repo", flyweight.Repository.getNameFromUrl("/home/user/code/my-repo.git"))
+        self.assertEquals("my-repo", flyweight.Repository.getNameFromUrl("C:\code\My Repo.git"))
 
 
 class TestFlyweight(unittest.TestCase):
