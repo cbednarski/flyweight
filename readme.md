@@ -2,7 +2,7 @@
 
 Flyweight is a lightweight commandline tool for building CDNs using Amazon S3 and CloudFront.
 
-[![Build Status](https://travis-ci.org/cbednarski/flyweight.png)]
+[![Build Status](https://api.travis-ci.org/cbednarski/flyweight.png?branch=master)]
 (https://travis-ci.org/cbednarski/flyweight)
 
 ### How it works
